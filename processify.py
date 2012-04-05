@@ -7,14 +7,11 @@ from multiprocessing import Process, Queue
 def processify(func):
     '''Decorator to run a function as a process.
 
-    Be sure that every argument is *pickable* and
-    the function is importable (no anonymous functions
-    supported).
+    Be sure that every argument and the return value 
+    is *pickable*.
 
-    Some considerations:
-
-    - The created process is joined, so the
-      code does not run in parallel.
+    The created process is joined, so the code does not 
+    run in parallel.
 
     '''
     # register original function with different name
