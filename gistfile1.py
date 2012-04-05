@@ -1,4 +1,3 @@
-
 import os
 import sys
 from multiprocessing import Process
@@ -18,6 +17,8 @@ def processify(func):
       code does not run in parallel.
 
     '''
+    # register original function with different name 
+    # in sys.modules so it is pickable
     func.__name__ = func.__name__ + 'processify_func'
     setattr(sys.modules[__name__], func.__name__, func)
 
