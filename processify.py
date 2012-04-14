@@ -7,10 +7,10 @@ from multiprocessing import Process, Queue
 def processify(func):
     '''Decorator to run a function as a process.
 
-    Be sure that every argument and the return value 
+    Be sure that every argument and the return value
     is *pickable*.
 
-    The created process is joined, so the code does not 
+    The created process is joined, so the code does not
     run in parallel.
 
     '''
@@ -36,9 +36,13 @@ def processify(func):
         p.join()
         try:
             if len(ret) == 3 and issubclass(ret[0], Exception):
-                raise ret[0](''.join(line for line in ret[2]))
+                msg = '%s\n' % ret[1]
+                org_traceback = ''.join(line for line in ret[2])
+                error = ret[0](msg + org_traceback)
         except TypeError:
             pass
+        else:
+            raise error
         return ret
     return wrapper
 
