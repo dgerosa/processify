@@ -34,6 +34,7 @@ def processify(func):
         p.start()
         ret = q.get()
         p.join()
+        error = None
         try:
             if len(ret) == 3 and issubclass(ret[0], Exception):
                 msg = '%s\n' % ret[1]
@@ -42,9 +43,11 @@ def processify(func):
         except TypeError:
             pass
         else:
-            raise error
+            if error:
+                raise error
         return ret
     return wrapper
+
 
 
 @processify
