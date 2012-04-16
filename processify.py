@@ -1,6 +1,7 @@
 import os
 import sys
 import traceback
+from functools import wraps
 from multiprocessing import Process, Queue
 
 
@@ -28,6 +29,7 @@ def processify(func):
     process_func.__name__ = func.__name__ + 'processify_func'
     setattr(sys.modules[__name__], process_func.__name__, process_func)
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
         q = Queue()
         p = Process(target=process_func, args=[q] + list(args), kwargs=kwargs)
