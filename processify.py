@@ -15,17 +15,22 @@ def processify(func):
     run in parallel.
 
     '''
-    # register original function with different name
-    # in sys.modules so it is pickable
+
     def process_func(q, *args, **kwargs):
         try:
             ret = func(*args, **kwargs)
         except Exception:
-            except_type, except_class, tb = sys.exc_info()
-            q.put((except_type, except_class, traceback.format_tb(tb)))
+            ex_type, ex_value, tb = sys.exc_info()
+            tb_str = ''.join(line for line in traceback.format_tb(tb))
+            error = ex_type, ex_value, tb_str
+            ret = None
         else:
-            q.put(ret)
+            error = None
 
+        q.put((ret, error))
+
+    # register original function with different name
+    # in sys.modules so it is pickable
     process_func.__name__ = func.__name__ + 'processify_func'
     setattr(sys.modules[__name__], process_func.__name__, process_func)
 
@@ -34,22 +39,16 @@ def processify(func):
         q = Queue()
         p = Process(target=process_func, args=[q] + list(args), kwargs=kwargs)
         p.start()
-        ret = q.get()
         p.join()
-        error = None
-        try:
-            if len(ret) == 3 and issubclass(ret[0], Exception):
-                msg = '%s\n' % ret[1]
-                org_traceback = ''.join(line for line in ret[2])
-                error = ret[0](msg + org_traceback)
-        except TypeError:
-            pass
-        else:
-            if error:
-                raise error
+        ret, error = q.get()
+
+        if error:
+            ex_type, ex_value, tb_str = error
+            message = '%s (from subprocess)\n%s' % (ex_value.message, tb_str)
+            raise ex_type(message)
+
         return ret
     return wrapper
-
 
 
 @processify
@@ -59,7 +58,7 @@ def test_function():
 
 @processify
 def test_exception():
-    raise RuntimeError()
+    raise RuntimeError('xyz')
 
 
 def test():
