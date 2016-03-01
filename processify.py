@@ -7,13 +7,10 @@ from multiprocessing import Process, Queue
 
 def processify(func):
     '''Decorator to run a function as a process.
-
     Be sure that every argument and the return value
     is *pickable*.
-
     The created process is joined, so the code does not
     run in parallel.
-
     '''
 
     def process_func(q, *args, **kwargs):
@@ -38,8 +35,8 @@ def processify(func):
         q = Queue()
         p = Process(target=process_func, args=[q] + list(args), kwargs=kwargs)
         p.start()
-        p.join()
         ret, error = q.get()
+        p.join()
 
         if error:
             ex_type, ex_value, tb_str = error
@@ -56,6 +53,11 @@ def test_function():
 
 
 @processify
+def test_deadlock():
+    return range(30000)
+
+
+@processify
 def test_exception():
     raise RuntimeError('xyz')
 
@@ -63,6 +65,7 @@ def test_exception():
 def test():
     print os.getpid()
     print test_function()
+    print len(test_deadlock())
     test_exception()
 
 if __name__ == '__main__':
