@@ -6,13 +6,12 @@ This is a for fork from [gist.github.com/schlamar/2311116](https://gist.github.c
 
 ### Usage
 
-def test_processify():
+    def test_processify():
 
+        @processify
+        def tricky():
+            return os.getpid()
 
-    @processify
-    def tricky():
-        return os.getpid()
-
-    print(os.getpid(), tricky(), tricky())
+        print(os.getpid(), tricky(), tricky())
     
     
