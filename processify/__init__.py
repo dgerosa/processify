@@ -1,1 +1,1 @@
-from processify import processify
+from .processify import *
